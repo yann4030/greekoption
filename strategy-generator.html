@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>期权策略生成器 - 50ETF高波动降波策略</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .generator-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+        .form-section h3 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .form-group select,
+        .form-group input {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        .btn-generate {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .btn-generate:hover {
+            background: var(--primary-hover);
+        }
+        .result-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+        .result-section.active {
+            display: block;
+        }
+        .strategy-card {
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--primary-color);
+        }
+        .strategy-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 12px;
+        }
+        .strategy-meta {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .strategy-meta span {
+            background: rgba(37, 99, 235, 0.1);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .legs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        .legs-table th,
+        .legs-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .legs-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .warning-box h4 {
+            color: var(--danger-color);
+            margin-bottom: 8px;
+        }
+        .checklist {
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .checklist h4 {
+            margin-bottom: 12px;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checklist li:before {
+            content: "☐";
+            color: var(--text-secondary);
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .metric-item {
+            background: var(--bg-dark);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-item .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 4px;
+        }
+        .metric-item .value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="generator-container">
+        <h1>📊 期权策略生成器</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 24px;">
+            基于50ETF高波动降波策略文档，自动生成可执行的交易方案
+        </p>
+
+        <div class="form-section">
+            <h3>交易偏好设置</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>是否持有现货</label>
+                    <select id="hasSpot">
+                        <option value="false">否 - 无现货持仓</option>
+                        <option value="true">是 - 持有50ETF/300ETF等</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>市场观点</label>
+                    <select id="marketView">
+                        <option value="neutral">中性 - 看波动率回落</option>
+                        <option value="bullish">偏多 - 认为会反弹</option>
+                        <option value="bearish">偏空 - 认为会继续跌</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>风险承受度</label>
+                    <select id="riskTolerance">
+                        <option value="conservative">保守 - 优先保本</option>
+                        <option value="moderate" selected>稳健 - 平衡收益风险</option>
+                        <option value="aggressive">激进 - 追求更高收益</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>经验水平</label>
+                    <select id="experience">
+                        <option value="beginner">新手 - 第一次做期权</option>
+                        <option value="intermediate" selected>中级 - 有一定经验</option>
+                        <option value="advanced">高级 - 熟悉 Greeks</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>资金规模（万元）</label>
+                    <input type="number" id="capital" value="10" min="1" step="1">
+                </div>
+                
+                <div class="form-group">
+                    <label>目标标的</label>
+                    <select id="targetUnderlying">
+                        <option value="all">自动推荐</option>
+                        <option value="510050">50ETF</option>
+                        <option value="510300">300ETF</option>
+                        <option value="510500">500ETF</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-generate" onclick="generatePlan()">生成交易方案</button>
+        </div>
+
+        <div id="resultSection" class="result-section">
+            <!-- 结果将在这里显示 -->
+        </div>
+    </div>
+
+    <script src="strategy-engine.js"></script>
+    <script>
+        function generatePlan() {
+            const preferences = {
+                hasSpotPosition: document.getElementById("hasSpot").value === "true",
+                marketView: document.getElementById("marketView").value,
+                riskTolerance: document.getElementById("riskTolerance").value,
+                experience: document.getElementById("experience").value,
+                capital: parseFloat(document.getElementById("capital").value),
+                targetUnderlying: document.getElementById("targetUnderlying").value
+            };
+
+            const plan = strategyEngine.generateTradingPlan(preferences);
+            displayPlan(plan);
+        }
+
+        function displayPlan(plan) {
+            const resultSection = document.getElementById("resultSection");
+            resultSection.classList.add("active");
+
+            let html = `
+                <h2>生成的交易方案</h2>
+                <p style="color: var(--text-secondary);">生成时间: ${plan.timestamp}</p>
+            `;
+
+            // 风险提示
+            html += `
+                <div class="warning-box">
+                    <h4>⚠️ 风险提示</h4>
+                    <ul>
+                        ${plan.riskWarnings.map(w => `<li>${w}</li>`).join("")}
+                    </ul>
+                </div>
+            `;
+
+            // 推荐策略
+            plan.recommendations.forEach((rec, index) => {
+                html += `
+                    <div class="strategy-card">
+                        <h4>${index + 1}. ${rec.strategy.name} (${rec.strategy.nameEn})</h4>
+                        <div class="strategy-meta">
+                            <span>风险: ${rec.strategy.riskLevel}</span>
+                            <span>复杂度: ${rec.strategy.complexity}</span>
+                            <span>最大亏损: ${rec.strategy.maxLoss}</span>
+                            <span>最大盈利: ${rec.strategy.maxProfit}</span>
+                        </div>
+                        <p>${rec.strategy.description}</p>
+                        ${rec.notes ? `<p style="color: var(--warning-color);">${rec.notes}</p>` : ""}
+                `;
+
+                // 标的配置
+                if (rec.underlyings) {
+                    html += `
+                        <h5 style="margin-top: 16px;">标的配置</h5>
+                        <div class="metrics-grid">
+                            ${rec.underlyings.map(u => `
+                                <div class="metric-item">
+                                    <span class="label">${u.name}</span>
+                                    <span class="value">${u.allocation}</span>
+                                </div>
+                            `).join("")}
+                        </div>
+                    `;
+                }
+
+                // 示例结构
+                if (rec.example) {
+                    html += `
+                        <h5 style="margin-top: 16px;">示例结构</h5>
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <span class="label">标的现价</span>
+                                <span class="value">${rec.example.spotPrice}</span>
+                            </div>
+                            ${rec.example.netCredit ? `
+                            <div class="metric-item">
+                                <span class="label">净收权利金</span>
+                                <span class="value">${rec.example.netCredit}</span>
+                            </div>
+                            ` : ""}
+                            ${rec.example.maxProfit ? `
+                            <div class="metric-item">
+                                <span class="label">最大盈利</span>
+                                <span class="value">${rec.example.maxProfit}</span>
+                            </div>
+                            ` : ""}
+                            ${rec.example.maxLoss ? `
+                            <div class="metric-item">
+                                <span class="label">最大亏损</span>
+                                <span class="value">${rec.example.maxLoss}</span>
+                            </div>
+                            ` : ""}
+                        </div>
+                    `;
+
+                    if (rec.example.legs) {
+                        html += `
+                            <table class="legs-table">
+                                <tr>
+                                    <th>方向</th>
+                                    <th>类型</th>
+                                    <th>行权价</th>
+                                    ${rec.example.legs[0].delta ? "<th>Delta</th>" : ""}
+                                </tr>
+                                ${rec.example.legs.map(leg => `
+                                    <tr>
+                                        <td>${leg.side === "buy" ? "买入" : "卖出"}</td>
+                                        <td>${leg.type === "call" ? "看涨" : "看跌"}</td>
+                                        <td>${leg.strike}</td>
+                                        ${leg.delta ? `<td>${leg.delta}</td>` : ""}
+                                    </tr>
+                                `).join("")}
+                            </table>
+                        `;
+                    }
+                }
+
+                // 管理规则
+                if (rec.management) {
+                    html += `
+                        <h5 style="margin-top: 16px;">管理规则</h5>
+                        <ul style="font-size: 14px;">
+                            ${Object.entries(rec.management).map(([key, value]) => `
+                                <li><strong>${key}:</strong> ${value}</li>
+                            `).join("")}
+                        </ul>
+                    `;
+                }
+
+                html += `</div>`;
+            });
+
+            // 执行检查清单
+            html += `
+                <div class="checklist">
+                    <h4>✅ 执行检查清单</h4>
+                    
+                    <h5>开仓前</h5>
+                    <ul>
+                        ${plan.executionChecklist.beforeEntry.map(item => `<li>${item}</li>`).join("")}
+                    </ul>
+                    
+                    <h5>持仓中</h5>
+                    <ul>
+                        ${plan.executionChecklist.duringHolding.map(item => `<li>${item}</li>`).join("")}
+                    </ul>
+                    
+                    <h5>平仓规则</h5>
+                    <ul>
+                        ${plan.executionChecklist.exitRules.map(item => `<li>${item}</li>`).join("")}
+                    </ul>
+                </div>
+            `;
+
+            resultSection.innerHTML = html;
+            resultSection.scrollIntoView({ behavior: "smooth" });
+        }
+    </script>
+</body>
+</html>
