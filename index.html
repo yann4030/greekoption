@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鏈熸潈浜ゆ槗鍒嗘瀽宸ュ叿</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo"><h1>鏈熸潈宸ュ叿</h1></div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-page="dashboard">琛屾儏鐪嬫澘</a>
+                <a href="#" class="nav-item" data-page="calculator">鏈熸潈璁＄畻鍣?/a>
+                <a href="#" class="nav-item" data-page="strategy">绛栫暐鍒嗘瀽</a>
+                <a href="#" class="nav-item" data-page="portfolio">鎸佷粨绠＄悊</a>
+                <a href="#" class="nav-item" data-page="greeks">Greeks鍒嗘瀽</a>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-box">
+                    <input type="text" placeholder="杈撳叆鑲＄エ浠ｇ爜锛屽: 510050" id="stockSearch">
+                    <button id="searchBtn">鏌ヨ</button>
+                </div>
+                <div class="user-info">
+                    <span id="marketStatus" class="status-closed">鏈繛鎺?/span>
+                    <span id="currentTime"></span>
+                </div>
+            </header>
+            <div class="page-content">
+                <section id="dashboard" class="page active">
+                    <h2>琛屾儏鐪嬫澘</h2>
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <h3>鏍囩殑璧勪骇</h3>
+                            <div class="asset-info">
+                                <div class="asset-name" id="assetName">--</div>
+                                <div class="asset-price">
+                                    <span class="price" id="assetPrice">--</span>
+                                    <span class="change" id="assetChange">--</span>
+                                </div>
+                                <div class="asset-detail">
+                                    <span>鏈€楂? <b id="assetHigh">--</b></span>
+                                    <span>鏈€浣? <b id="assetLow">--</b></span>
+                                    <span>鎴愪氦閲? <b id="assetVolume">--</b></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h3>鏈熸潈閾?<span id="optionExpiry">--</span></h3>
+                            <div class="option-chain-header">
+                                <span>琛屾潈浠?/span>
+                                <span>鐪嬫定(涔?鍗?</span>
+                                <span>鐪嬭穼(涔?鍗?</span>
+                            </div>
+                            <div class="option-chain-list" id="optionChain"></div>
+                        </div>
+                        <div class="card">
+                            <h3>娉㈠姩鐜囨寚鏁?/h3>
+                            <div class="vix-display">
+                                <span class="vix-value" id="vixValue">--</span>
+                                <span class="vix-label">涓浗娉㈡寚(iVIX)</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="calculator" class="page">
+                    <h2>鏈熸潈瀹氫环璁＄畻鍣?(Black-Scholes)</h2>
+                    <div class="calc-container">
+                        <div class="calc-inputs card">
+                            <h3>鍙傛暟杈撳叆</h3>
+                            <div class="input-group">
+                                <label>鏍囩殑鐜颁环 (S)</label>
+                                <input type="number" id="spotPrice" value="100" step="0.001">
+                            </div>
+                            <div class="input-group">
+                                <label>琛屾潈浠?(K)</label>
+                                <input type="number" id="strikePrice" value="100" step="0.001">
+                            </div>
+                            <div class="input-group">
+                                <label>鍒版湡鏃堕棿 (T, 骞?</label>
+                                <input type="number" id="timeToExpiry" value="0.25" step="0.01">
+                            </div>
+                            <div class="input-group">
+                                <label>鏃犻闄╁埄鐜?(r, %)</label>
+                                <input type="number" id="riskFreeRate" value="3" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label>娉㈠姩鐜?(sigma, %)</label>
+                                <input type="number" id="volatility" value="20" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label>鏈熸潈绫诲瀷</label>
+                                <select id="optionType">
+                                    <option value="call">鐪嬫定鏈熸潈 (Call)</option>
+                                    <option value="put">鐪嬭穼鏈熸潈 (Put)</option>
+                                </select>
+                            </div>
+                            <button id="calcBtn" class="btn-primary">璁＄畻</button>
+                        </div>
+                        <div class="calc-results card">
+                            <h3>璁＄畻缁撴灉</h3>
+                            <div class="result-grid">
+                                <div class="result-item"><span class="label">鏈熸潈浠锋牸</span><span class="value" id="optionPrice">--</span></div>
+                                <div class="result-item"><span class="label">Delta</span><span class="value" id="delta">--</span></div>
+                                <div class="result-item"><span class="label">Gamma</span><span class="value" id="gamma">--</span></div>
+                                <div class="result-item"><span class="label">Theta (姣忔棩)</span><span class="value" id="theta">--</span></div>
+                                <div class="result-item"><span class="label">Vega</span><span class="value" id="vega">--</span></div>
+                                <div class="result-item"><span class="label">Rho</span><span class="value" id="rho">--</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="strategy" class="page">
+                    <h2>鏈熸潈绛栫暐鍒嗘瀽</h2>
+                    <div class="strategy-container">
+                        <div class="strategy-list card">
+                            <h3>閫夋嫨绛栫暐</h3>
+                            <div class="strategy-buttons">
+                                <button class="strategy-btn active" data-strategy="long-call">涔板叆鐪嬫定 (Long Call)</button>
+                                <button class="strategy-btn" data-strategy="long-put">涔板叆鐪嬭穼 (Long Put)</button>
+                                <button class="strategy-btn" data-strategy="covered-call">澶囧厬鐪嬫定 (Covered Call)</button>
+                                <button class="strategy-btn" data-strategy="protective-put">淇濇姢鎬х湅璺?(Protective Put)</button>
+                                <button class="strategy-btn" data-strategy="bull-call">鐗涘競鐪嬫定浠峰樊 (Bull Call)</button>
+                                <button class="strategy-btn" data-strategy="bear-put">鐔婂競鐪嬭穼浠峰樊 (Bear Put)</button>
+                                <button class="strategy-btn" data-strategy="iron-condor">閾侀拱浠峰樊 (Iron Condor)</button>
+                                <button class="strategy-btn" data-strategy="straddle">涔板叆璺ㄥ紡 (Long Straddle)</button>
+                            </div>
+                        </div>
+                        <div class="strategy-chart card">
+                            <h3>鍒版湡鐩堜簭鍥?/h3>
+                            <canvas id="payoffChart"></canvas>
+                            <div class="strategy-desc" id="strategyDesc"></div>
+                        </div>
+                    </div>
+                </section>
+                <section id="portfolio" class="page">
+                    <h2>鎸佷粨绠＄悊</h2>
+                    <div class="portfolio-container">
+                        <div class="portfolio-summary card">
+                            <h3>鎸佷粨姒傝</h3>
+                            <div class="summary-stats">
+                                <div class="stat"><span class="label">鎬诲競鍊?/span><span class="value" id="totalValue">--</span></div>
+                                <div class="stat"><span class="label">褰撴棩鐩堜簭</span><span class="value" id="dailyPnL">--</span></div>
+                                <div class="stat"><span class="label">鎬荤泩浜?/span><span class="value" id="totalPnL">--</span></div>
+                            </div>
+                        </div>
+                        <div class="positions-table card">
+                            <h3>鎸佷粨鏄庣粏</h3>
+                            <table>
+                                <thead>
+                                    <tr><th>浠ｇ爜</th><th>鍚嶇О</th><th>鏂瑰悜</th><th>鏁伴噺</th><th>鎴愭湰浠?/th><th>鐜颁环</th><th>鐩堜簭</th></tr>
+                                </thead>
+                                <tbody id="positionsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                <section id="greeks" class="page">
+                    <h2>Greeks 椋庨櫓鍒嗘瀽</h2>
+                    <div class="greeks-container">
+                        <div class="greeks-summary card">
+                            <h3>缁勫悎 Greeks</h3>
+                            <div class="greeks-grid">
+                                <div class="greeks-item"><span class="label">Delta</span><span class="value" id="portfolioDelta">--</span></div>
+                                <div class="greeks-item"><span class="label">Gamma</span><span class="value" id="portfolioGamma">--</span></div>
+                                <div class="greeks-item"><span class="label">Theta</span><span class="value" id="portfolioTheta">--</span></div>
+                                <div class="greeks-item"><span class="label">Vega</span><span class="value" id="portfolioVega">--</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
