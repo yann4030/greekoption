@@ -17,11 +17,8 @@ class MarketDataService:
         self.redis: Optional[redis.Redis] = None
         self.etf_codes = {
             "510050": "50ETF",
-            "510300": "300ETF",
+            "510300": "300ETF", 
             "510500": "500ETF",
-            "510050": "50ETF华夏",
-            "510300": "300ETF华泰柏瑞",
-            "510500": "500ETF南方",
             "159915": "创业板ETF",
             "588000": "科创50ETF"
         }
@@ -31,12 +28,14 @@ class MarketDataService:
         try:
             self.redis = await redis.from_url(settings.redis_url)
         except Exception as e:
-            print(f"Redis连接失败: {e}")
+            print(f"⚠️ Redis连接失败: {e}")
     
     async def start_realtime_fetch(self):
         """启动实时数据获取"""
         await self.init_redis()
         self.running = True
+        
+        print("🚀 启动行情数据服务...")
         
         # 先获取一次数据
         await self._fetch_all()
@@ -47,7 +46,7 @@ class MarketDataService:
                 await self._save_to_redis()
                 await asyncio.sleep(settings.market_data_refresh_interval)
             except Exception as e:
-                print(f"获取行情失败: {e}")
+                print(f"❌ 获取行情失败: {e}")
                 await asyncio.sleep(10)
     
     async def stop(self):
@@ -59,16 +58,13 @@ class MarketDataService:
     async def _fetch_all(self):
         """获取所有ETF数据"""
         async with httpx.AsyncClient() as client:
-            tasks = []
-            for code in self.etf_codes.keys():
-                tasks.append(self._fetch_etf(client, code))
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-            
-            for code, result in zip(self.etf_codes.keys(), results):
-                if isinstance(result, Exception):
-                    print(f"获取{code}失败: {result}")
-                else:
-                    self.data[code] = result
+            for code, name in self.etf_codes.items():
+                try:
+                    data = await self._fetch_etf(client, code)
+                    self.data[code] = data
+                    print(f"✅ {name}: {data["price"]} ({data["change_pct"]}%)")
+                except Exception as e:
+                    print(f"❌ 获取{code}失败: {e}")
     
     async def _fetch_etf(self, client: httpx.AsyncClient, code: str) -> dict:
         """获取单个ETF数据 - 东方财富API"""
@@ -80,14 +76,11 @@ class MarketDataService:
         data = result.get("data", {})
         
         # 字段映射
-        # f43=现价(分), f44=今开(分), f45=最高(分), f46=最低(分)
-        # f47=成交量(手), f48=成交额(元), f57=代码, f58=名称
-        # f60=昨收(分), f170=涨跌幅(%)
         price = data.get("f43", 0) / 1000
         pre_close = data.get("f60", 0) / 1000
         change_pct = data.get("f170", 0) / 100
         
-        # 计算IV（简化版，实际应从期权数据计算）
+        # 计算IV
         iv = self._estimate_iv(code, change_pct)
         
         return {
@@ -96,9 +89,9 @@ class MarketDataService:
             "price": round(price, 3),
             "pre_close": round(pre_close, 3),
             "change_pct": round(change_pct, 2),
-            "open": data.get("f44", 0) / 1000,
-            "high": data.get("f45", 0) / 1000,
-            "low": data.get("f46", 0) / 1000,
+            "open": round(data.get("f44", 0) / 1000, 3),
+            "high": round(data.get("f45", 0) / 1000, 3),
+            "low": round(data.get("f46", 0) / 1000, 3),
             "volume": data.get("f47", 0),
             "amount": data.get("f48", 0),
             "iv": iv,
@@ -107,7 +100,6 @@ class MarketDataService:
     
     def _estimate_iv(self, code: str, change_pct: float) -> float:
         """估算隐含波动率"""
-        # 基础IV
         base_iv = {
             "510050": 22.0,
             "510300": 21.5,
@@ -117,8 +109,6 @@ class MarketDataService:
         }
         
         iv = base_iv.get(code, 22.0)
-        
-        # 根据涨跌幅调整（波动越大IV越高）
         iv += abs(change_pct) * 0.5
         
         return round(iv, 2)
@@ -133,11 +123,10 @@ class MarketDataService:
                 key = f"market:{code}"
                 await self.redis.setex(key, 60, json.dumps(data))
         except Exception as e:
-            print(f"保存到Redis失败: {e}")
+            print(f"⚠️ 保存到Redis失败: {e}")
     
     async def get_quote(self, symbol: str) -> Optional[dict]:
         """获取行情"""
-        # 先查Redis
         if self.redis:
             try:
                 data = await self.redis.get(f"market:{symbol}")
@@ -174,13 +163,13 @@ class MarketDataService:
         for strike in strikes:
             distance = abs(strike - price)
             
-            # Call价格（价内更高）
+            # Call价格
             if strike <= price:
                 call_price = max(0.001, (price - strike) + price * 0.02)
             else:
                 call_price = max(0.001, price * 0.02 - (strike - price) * 0.3)
             
-            # Put价格（价内更高）
+            # Put价格
             if strike >= price:
                 put_price = max(0.001, (strike - price) + price * 0.02)
             else:
