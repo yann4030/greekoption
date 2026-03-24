@@ -1,6 +1,6 @@
 ﻿services:
   - type: web
-    name: options-trading-api
+    name: yann-option-tools-api
     env: python
     buildCommand: pip install -r backend/requirements.txt
     startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
@@ -9,23 +9,23 @@
         value: 3.11.0
       - key: DATABASE_URL
         fromDatabase:
-          name: options-trading-db
+          name: yann-option-tools-db
           property: connectionString
       - key: REDIS_URL
         fromService:
           type: redis
-          name: options-trading-redis
+          name: yann-option-tools-redis
           property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        value: "https://options-trading.vercel.app,http://localhost:3000"
+        value: "https://yann-option-tools.vercel.app,http://localhost:3000"
 
 databases:
-  - name: options-trading-db
-    databaseName: options_trading
-    user: options_user
+  - name: yann-option-tools-db
+    databaseName: option_tools
+    user: option_user
 
 redis:
-  - name: options-trading-redis
+  - name: yann-option-tools-redis
     ipAllowList: []
