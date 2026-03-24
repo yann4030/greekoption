@@ -15,43 +15,15 @@ class TradingRecommender {
     }
 
     /**
-     * 获取实时数据
-     */
-    async fetchRealTimeData() {
-        try {
-            // 使用东方财富API获取实时数据
-            const stocks = [
-                { code: "1.510050", name: "50ETF" },
-                { code: "1.510300", name: "300ETF" },
-                { code: "1.510500", name: "500ETF" }
-            ];
-            
-            for (const stock of stocks) {
-                const url = `https://push2.eastmoney.com/api/qt/stock/get?secid=${stock.code}&fields=f43,f44,f45,f46,f47,f48,f57,f58,f60`;
-                // 实际使用时通过fetch获取
-                // const response = await fetch(url);
-                // const data = await response.json();
-            }
-            
-            return this.marketData;
-        } catch (error) {
-            console.error("获取实时数据失败:", error);
-            return this.marketData;
-        }
-    }
-
-    /**
      * 生成实时交易推荐
      */
     generateRecommendations() {
         const recommendations = [];
         
-        // 基于当前市场数据生成推荐
         for (const [code, data] of Object.entries(this.marketData)) {
             const changePct = ((data.price - data.preClose) / data.preClose * 100).toFixed(2);
             const ivLevel = this.getIVLevel(data.iv);
             
-            // 生成铁鹰推荐
             const ironCondor = this.generateIronCondor(code, data);
             recommendations.push({
                 type: "铁鹰策略",
@@ -67,10 +39,8 @@ class TradingRecommender {
             });
         }
         
-        // 按评分排序
         recommendations.sort((a, b) => b.score - a.score);
         
-        // 分配优先级
         recommendations.forEach((rec, index) => {
             rec.priority = index + 1;
         });
@@ -85,18 +55,14 @@ class TradingRecommender {
         const price = data.price;
         const strikeInterval = code === "510500" ? 0.25 : 0.05;
         
-        // 计算行权价
         const atmStrike = Math.round(price / strikeInterval) * strikeInterval;
         
-        // Put端 (下方)
         const putSellStrike = (atmStrike - 2 * strikeInterval).toFixed(2);
         const putBuyStrike = (atmStrike - 3 * strikeInterval).toFixed(2);
         
-        // Call端 (上方)
         const callSellStrike = (atmStrike + 2 * strikeInterval).toFixed(2);
         const callBuyStrike = (atmStrike + 3 * strikeInterval).toFixed(2);
         
-        // 估算权利金 (简化计算)
         const timeValue = data.iv / 100 * Math.sqrt(30 / 365);
         const putCredit = (timeValue * price * 0.8).toFixed(4);
         const callCredit = (timeValue * price * 0.8).toFixed(4);
@@ -121,9 +87,6 @@ class TradingRecommender {
         };
     }
 
-    /**
-     * 判断IV水平
-     */
     getIVLevel(iv) {
         if (iv < 18) return "偏低";
         if (iv < 25) return "中等";
@@ -131,37 +94,20 @@ class TradingRecommender {
         return "极高";
     }
 
-    /**
-     * 计算推荐评分
-     */
     calculateScore(data, structure) {
         let score = 50;
         
-        // IV越高越适合卖波
         if (data.iv > 25) score += 20;
         else if (data.iv > 20) score += 10;
         
-        // 权利金/风险比
         const riskReward = parseFloat(structure.netCredit) / 0.05;
         score += riskReward * 10;
         
-        // 流动性因素
         if (data.name === "300ETF" || data.name === "50ETF") score += 10;
         
         return Math.min(100, Math.max(0, score)).toFixed(1);
     }
 
-    /**
-     * 获取最佳推荐
-     */
-    getBestRecommendation() {
-        const recommendations = this.generateRecommendations();
-        return recommendations[0];
-    }
-
-    /**
-     * 渲染推荐结果到页面
-     */
     renderRecommendations() {
         const container = document.getElementById("realtimeRecommendations");
         if (!container) return;
@@ -177,9 +123,10 @@ class TradingRecommender {
         
         recommendations.forEach((rec, index) => {
             const scoreColor = rec.score >= 80 ? "#10b981" : rec.score >= 60 ? "#f59e0b" : "#ef4444";
+            const isBest = index === 0;
             
             html += `
-                <div class="recommendation-card ${index === 0 ? "best" : ""}">
+                <div class="recommendation-card ${isBest ? "best" : ""}" data-code="${rec.code}" style="cursor: pointer;" title="点击查看详情">
                     <div class="rec-header">
                         <span class="priority">#${rec.priority}</span>
                         <span class="underlying">${rec.underlying} (${rec.code})</span>
@@ -210,59 +157,71 @@ class TradingRecommender {
                                 <span>盈亏区间: ${rec.structure.breakEvenLower} - ${rec.structure.breakEvenUpper}</span>
                             </div>
                         </div>
-                        ${index === 0 ? `
-                        <div class="action-buttons">
-                            <button onclick="applyRecommendation("${rec.code}")" class="btn-apply">应用此方案</button>
-                            <button onclick="viewDetails("${rec.code}")" class="btn-details">查看详情</button>
-                        </div>
-                        ` : ""}
+                        ${isBest ? '<div style="margin-top: 10px; padding: 8px; background: rgba(16, 185, 129, 0.1); border-radius: 4px; text-align: center; color: var(--success-color); font-weight: 500;">👍 最佳推荐 - 点击卡片查看详情</div>' : ''}
                     </div>
                 </div>
             `;
         });
         
         container.innerHTML = html;
+        
+        // 添加点击事件
+        container.querySelectorAll('.recommendation-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const code = this.dataset.code;
+                applyRecommendation(code);
+            });
+        });
     }
 }
 
 // 全局实例
 const tradingRecommender = new TradingRecommender();
 
+// 应用推荐方案
+function applyRecommendation(code) {
+    console.log("应用推荐方案:", code);
+    const rec = tradingRecommender.generateRecommendations().find(r => r.code === code);
+    if (rec) {
+        // 填充到计算器
+        const spotPriceInput = document.getElementById("spotPrice");
+        if (spotPriceInput) {
+            spotPriceInput.value = (rec.currentPrice * 100).toFixed(2);
+        }
+        
+        // 切换到计算器页面
+        document.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
+        document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+        
+        const calcNav = document.querySelector("[data-page=\"calculator\"]");
+        const calcPage = document.getElementById("calculator");
+        
+        if (calcNav) calcNav.classList.add("active");
+        if (calcPage) calcPage.classList.add("active");
+        
+        // 触发计算
+        const calcBtn = document.getElementById("calcBtn");
+        if (calcBtn) calcBtn.click();
+        
+        alert(`已加载 ${rec.underlying} 的推荐方案:\n` +
+              `Put: 卖${rec.structure.putLegs.sell} / 买${rec.structure.putLegs.buy}\n` +
+              `Call: 卖${rec.structure.callLegs.sell} / 买${rec.structure.callLegs.buy}\n` +
+              `请在期权计算器中查看详细计算结果。`);
+    }
+}
+
 // 自动更新推荐
 function startRealtimeUpdates() {
     tradingRecommender.renderRecommendations();
     
-    // 每30秒更新一次
     setInterval(() => {
         tradingRecommender.renderRecommendations();
     }, 30000);
 }
 
-// 应用推荐方案
-function applyRecommendation(code) {
-    const rec = tradingRecommender.generateRecommendations().find(r => r.code === code);
-    if (rec) {
-        // 填充到计算器
-        document.getElementById("spotPrice").value = (rec.currentPrice * 100).toFixed(2);
-        alert(`已加载 ${rec.underlying} 的推荐方案:\n` +
-              `Put: 卖${rec.structure.putLegs.sell} / 买${rec.structure.putLegs.buy}\n` +
-              `Call: 卖${rec.structure.callLegs.sell} / 买${rec.structure.callLegs.buy}`);
-    }
-}
-
-// 查看详情
-function viewDetails(code) {
-    const rec = tradingRecommender.generateRecommendations().find(r => r.code === code);
-    if (rec) {
-        document.getElementById("dashboard").classList.remove("active");
-        document.getElementById("calculator").classList.add("active");
-        document.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
-        document.querySelector("[data-page=\"calculator\"]").classList.add("active");
-    }
-}
-
 // 页面加载完成后启动
 document.addEventListener("DOMContentLoaded", () => {
+    console.log("交易推荐系统初始化...");
     if (document.getElementById("realtimeRecommendations")) {
         startRealtimeUpdates();
     }
