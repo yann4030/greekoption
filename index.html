@@ -30,8 +30,19 @@
                 </div>
             </header>
             <div class="page-content">
-                <section id="dashboard" class="page active">
+                                <section id="dashboard" class="page active">
                     <h2>行情看板</h2>
+                    
+                    <!-- 实时交易推荐 -->
+                    <div class="card" style="margin-bottom: 20px; border: 2px solid var(--primary-color);">
+                        <h3 style="color: var(--primary-color);">🎯 实时交易推荐</h3>
+                        <div id="realtimeRecommendations">
+                            <p style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                正在加载实时数据...
+                            </p>
+                        </div>
+                    </div>
+                    
                     <div class="dashboard-grid">
                         <div class="card">
                             <h3>标的资产</h3>
@@ -134,6 +145,8 @@
         </main>
     </div>
     <script src="market-data.js"></script>
+    <script src="trading-recommender.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
+
