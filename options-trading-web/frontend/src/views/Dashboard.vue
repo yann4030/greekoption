@@ -1,7 +1,7 @@
 ﻿<template>
   <div class="dashboard">
     <h1>Dashboard</h1>
-    <p>Welcome to GreekOption</p>
+    <p>Welcome to GreekOption Trading Platform</p>
   </div>
 </template>
 

@@ -1,7 +1,7 @@
 ﻿<template>
   <div class="strategy">
     <h1>Strategy Analysis</h1>
-    <p>Options strategy analysis</p>
+    <p>Options trading strategy analysis</p>
   </div>
 </template>
 

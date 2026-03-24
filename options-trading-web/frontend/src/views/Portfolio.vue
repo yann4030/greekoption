@@ -1,7 +1,7 @@
 ﻿<template>
   <div class="portfolio">
-    <h1>Portfolio</h1>
-    <p>Portfolio management</p>
+    <h1>Portfolio Management</h1>
+    <p>Manage your options portfolio</p>
   </div>
 </template>
 

@@ -1,7 +1,7 @@
 ﻿<template>
   <div class="greeks">
     <h1>Greeks Analysis</h1>
-    <p>Options Greeks analysis</p>
+    <p>Options Greeks risk analysis</p>
   </div>
 </template>
 
