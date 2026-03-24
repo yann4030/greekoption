@@ -1,13 +1,12 @@
 ﻿{
-  "name": "options-trading-frontend",
+  "name": "greekoption-frontend",
   "version": "4.0.0",
-  "description": "期权交易平台前端",
+  "description": "GreekOption Frontend",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
-    "preview": "vite preview",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix"
+    "preview": "vite preview"
   },
   "dependencies": {
     "vue": "^3.4.0",
