@@ -1,23 +1,44 @@
 ﻿<template>
   <div class="login">
-    <el-card class="login-card">
-      <template #header><h2>期权交易平台</h2></template>
-      <el-form :model="form" label-position="top">
-        <el-form-item label="用户名"><el-input v-model="form.username" /></el-form-item>
-        <el-form-item label="密码"><el-input v-model="form.password" type="password" /></el-form-item>
-        <el-button type="primary" style="width:100%" @click="login">登录</el-button>
-      </el-form>
-    </el-card>
+    <div class="login-box">
+      <h1>GreekOption</h1>
+      <p>Options Trading Platform</p>
+      <button @click="login">Login</button>
+    </div>
   </div>
 </template>
+
 <script setup lang="ts">
-import { reactive } from "vue"
-import { useRouter } from "vue-router"
+import { useRouter } from 'vue-router'
+
 const router = useRouter()
-const form = reactive({ username: "", password: "" })
-const login = () => { localStorage.setItem("token", "demo"); router.push("/") }
+
+const login = () => {
+  localStorage.setItem('token', 'demo')
+  router.push('/')
+}
 </script>
+
 <style scoped>
-.login{height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a}
-.login-card{width:400px}
+.login {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f172a;
+}
+
+.login-box {
+  text-align: center;
+  color: #e2e8f0;
+}
+
+button {
+  padding: 10px 30px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
 </style>
