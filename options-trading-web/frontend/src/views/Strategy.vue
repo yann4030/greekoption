@@ -129,8 +129,7 @@
     <el-row v-else
       <el-col :span="24">
         <el-empty description="选择策略并点击生成按钮查看盈亏图">
-          <template #image
-            <el-icon :size="60" color="#64748b"><TrendCharts /></el-icon>
+          <template #image>`n            <el-icon :size="60" color="#64748b"><TrendCharts /></el-icon>
           </template>
         </el-empty>
       </el-col>
@@ -413,3 +412,4 @@ watch(() => strategyResult.value, () => {
   color: #ef4444;
 }
 </style>
+
