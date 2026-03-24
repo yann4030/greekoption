@@ -10,20 +10,37 @@ import asyncio
 
 from api import market, strategy, auth, portfolio
 from services.market_service import MarketDataService
+from database import init_db
+
+# 全局行情服务
+market_service = MarketDataService()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # 启动时初始化
-    market_service = MarketDataService()
+    print("🚀 启动期权交易平台...")
+    
+    # 初始化数据库
+    try:
+        await init_db()
+        print("✅ 数据库初始化完成")
+    except Exception as e:
+        print(f"⚠️ 数据库初始化失败: {e}")
+    
+    # 启动行情服务
     asyncio.create_task(market_service.start_realtime_fetch())
+    print("✅ 行情服务启动")
+    
     yield
+    
     # 关闭时清理
+    print("🛑 关闭服务...")
     await market_service.stop()
 
 app = FastAPI(
     title="期权交易平台API",
     description="前后端分离的期权交易服务",
-    version="4.0.0",
+    version="4.2.0",
     lifespan=lifespan
 )
 
@@ -46,14 +63,26 @@ app.include_router(portfolio.router, prefix="/api/v1/portfolio", tags=["持仓"]
 async def root():
     return {
         "message": "期权交易平台API",
-        "version": "4.0.0",
-        "docs": "/docs"
+        "version": "4.2.0",
+        "docs": "/docs",
+        "endpoints": {
+            "auth": "/api/v1/auth",
+            "market": "/api/v1/market",
+            "strategy": "/api/v1/strategy",
+            "portfolio": "/api/v1/portfolio"
+        }
     }
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    """健康检查"""
+    return {
+        "status": "healthy",
+        "market_data_count": len(market_service.data),
+        "timestamp": datetime.now().isoformat()
+    }
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+from datetime import datetime

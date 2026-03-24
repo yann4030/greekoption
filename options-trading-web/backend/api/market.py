@@ -1,15 +1,25 @@
-﻿from fastapi import APIRouter, HTTPException
+﻿from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from pydantic import BaseModel
+from datetime import datetime
+
+from database import get_db
+from services.market_service import MarketDataService
 
 router = APIRouter()
 
-class QuoteResponse(BaseModel):
+# 响应模型
+class ETFQuoteResponse(BaseModel):
     symbol: str
     name: str
     price: float
     pre_close: float
     change_pct: float
+    open: Optional[float] = None
+    high: Optional[float] = None
+    low: Optional[float] = None
+    volume: Optional[float] = None
     iv: Optional[float] = None
     updated_at: str
 
@@ -20,62 +30,49 @@ class OptionChainItem(BaseModel):
     put_price: float
     put_iv: float
 
-@router.get("/quote/{symbol}", response_model=QuoteResponse)
+class OptionChainResponse(BaseModel):
+    underlying: str
+    underlying_price: float
+    expiry: str
+    strikes: List[OptionChainItem]
+
+# 全局行情服务实例
+market_service = MarketDataService()
+
+@router.get("/quote/{symbol}", response_model=ETFQuoteResponse)
 async def get_quote(symbol: str):
     """获取实时行情"""
-    # TODO: 从Redis缓存或数据库获取
-    return {
-        "symbol": symbol,
-        "name": "50ETF",
-        "price": 2.870,
-        "pre_close": 2.868,
-        "change_pct": 0.07,
-        "iv": 22.5,
-        "updated_at": "2024-03-24T12:00:00"
-    }
+    data = await market_service.get_quote(symbol)
+    if not data:
+        raise HTTPException(status_code=404, detail="标的不存在")
+    return data
 
-@router.get("/option-chain")
+@router.get("/etfs", response_model=List[ETFQuoteResponse])
+async def get_etf_list():
+    """获取ETF列表"""
+    data = await market_service.get_all_quotes()
+    return data
+
+@router.get("/option-chain", response_model=OptionChainResponse)
 async def get_option_chain(
     underlying: str,
     expiry: Optional[str] = None
 ):
     """获取期权链"""
-    # TODO: 实现期权链数据获取
-    return {
-        "underlying": underlying,
-        "expiry": expiry or "2024-04-24",
-        "strikes": []
-    }
+    result = await market_service.get_option_chain(underlying, expiry)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
 
-@router.get("/etfs", response_model=List[QuoteResponse])
-async def get_etf_list():
-    """获取ETF列表"""
-    return [
-        {
-            "symbol": "510050",
-            "name": "50ETF",
-            "price": 2.870,
-            "pre_close": 2.868,
-            "change_pct": 0.07,
-            "iv": 22.5,
-            "updated_at": "2024-03-24T12:00:00"
-        },
-        {
-            "symbol": "510300",
-            "name": "300ETF",
-            "price": 4.445,
-            "pre_close": 4.430,
-            "change_pct": 0.34,
-            "iv": 21.8,
-            "updated_at": "2024-03-24T12:00:00"
-        },
-        {
-            "symbol": "510500",
-            "name": "500ETF",
-            "price": 7.548,
-            "pre_close": 7.512,
-            "change_pct": 0.48,
-            "iv": 25.2,
-            "updated_at": "2024-03-24T12:00:00"
-        }
-    ]
+@router.get("/history/{symbol}")
+async def get_history(
+    symbol: str,
+    period: str = "1m"  # 1d, 1w, 1m, 3m, 1y
+):
+    """获取历史数据（模拟）"""
+    # TODO: 接入真实历史数据API
+    return {
+        "symbol": symbol,
+        "period": period,
+        "data": []
+    }
