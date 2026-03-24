@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -12,12 +12,13 @@
             <div class="logo"><h1>期权工具</h1></div>
             <nav class="nav-menu">
                 <a href="#" class="nav-item active" data-page="dashboard">行情看板</a>
-                <a href="#" class="nav-item" data-page="calculator">期权计算�?/a>
+                <a href="#" class="nav-item" data-page="calculator">期权计算器</a>
                 <a href="#" class="nav-item" data-page="strategy">策略分析</a>
                 <a href="#" class="nav-item" data-page="portfolio">持仓管理</a>
                 <a href="#" class="nav-item" data-page="greeks">Greeks分析</a>
             </nav>
         </aside>
+        
         <main class="main-content">
             <header class="top-bar">
                 <div class="search-box">
@@ -25,10 +26,11 @@
                     <button id="searchBtn">查询</button>
                 </div>
                 <div class="user-info">
-                    <span id="marketStatus" class="status-closed">未连�?/span>
+                    <span id="marketStatus" class="status-closed">未连接</span>
                     <span id="currentTime"></span>
                 </div>
             </header>
+            
             <div class="page-content">
                 <section id="dashboard" class="page active">
                     <h2>行情看板</h2>
@@ -42,23 +44,23 @@
                                     <span class="change" id="assetChange">--</span>
                                 </div>
                                 <div class="asset-detail">
-                                    <span>最�? <b id="assetHigh">--</b></span>
-                                    <span>最�? <b id="assetLow">--</b></span>
-                                    <span>成交�? <b id="assetVolume">--</b></span>
+                                    <span>最高: <b id="assetHigh">--</b></span>
+                                    <span>最低: <b id="assetLow">--</b></span>
+                                    <span>成交量: <b id="assetVolume">--</b></span>
                                 </div>
                             </div>
                         </div>
                         <div class="card">
-                            <h3>期权�?<span id="optionExpiry">--</span></h3>
+                            <h3>期权链 <span id="optionExpiry">--</span></h3>
                             <div class="option-chain-header">
-                                <span>行权�?/span>
-                                <span>看涨(�?�?</span>
-                                <span>看跌(�?�?</span>
+                                <span>行权价</span>
+                                <span>看涨(买/卖)</span>
+                                <span>看跌(买/卖)</span>
                             </div>
                             <div class="option-chain-list" id="optionChain"></div>
                         </div>
                         <div class="card">
-                            <h3>波动率指�?/h3>
+                            <h3>波动率指数</h3>
                             <div class="vix-display">
                                 <span class="vix-value" id="vixValue">--</span>
                                 <span class="vix-label">中国波指(iVIX)</span>
@@ -66,8 +68,9 @@
                         </div>
                     </div>
                 </section>
+                
                 <section id="calculator" class="page">
-                    <h2>期权定价计算�?(Black-Scholes)</h2>
+                    <h2>期权定价计算器 (Black-Scholes)</h2>
                     <div class="calc-container">
                         <div class="calc-inputs card">
                             <h3>参数输入</h3>
@@ -76,19 +79,19 @@
                                 <input type="number" id="spotPrice" value="100" step="0.001">
                             </div>
                             <div class="input-group">
-                                <label>行权�?(K)</label>
+                                <label>行权价 (K)</label>
                                 <input type="number" id="strikePrice" value="100" step="0.001">
                             </div>
                             <div class="input-group">
-                                <label>到期时间 (T, �?</label>
+                                <label>到期时间 (T, 年)</label>
                                 <input type="number" id="timeToExpiry" value="0.25" step="0.01">
                             </div>
                             <div class="input-group">
-                                <label>无风险利�?(r, %)</label>
+                                <label>无风险利率 (r, %)</label>
                                 <input type="number" id="riskFreeRate" value="3" step="0.1">
                             </div>
                             <div class="input-group">
-                                <label>波动�?(sigma, %)</label>
+                                <label>波动率 (sigma, %)</label>
                                 <input type="number" id="volatility" value="20" step="0.1">
                             </div>
                             <div class="input-group">
@@ -100,6 +103,7 @@
                             </div>
                             <button id="calcBtn" class="btn-primary">计算</button>
                         </div>
+                        
                         <div class="calc-results card">
                             <h3>计算结果</h3>
                             <div class="result-grid">
@@ -113,6 +117,7 @@
                         </div>
                     </div>
                 </section>
+                
                 <section id="strategy" class="page">
                     <h2>期权策略分析</h2>
                     <div class="strategy-container">
@@ -122,7 +127,7 @@
                                 <button class="strategy-btn active" data-strategy="long-call">买入看涨 (Long Call)</button>
                                 <button class="strategy-btn" data-strategy="long-put">买入看跌 (Long Put)</button>
                                 <button class="strategy-btn" data-strategy="covered-call">备兑看涨 (Covered Call)</button>
-                                <button class="strategy-btn" data-strategy="protective-put">保护性看�?(Protective Put)</button>
+                                <button class="strategy-btn" data-strategy="protective-put">保护性看跌 (Protective Put)</button>
                                 <button class="strategy-btn" data-strategy="bull-call">牛市看涨价差 (Bull Call)</button>
                                 <button class="strategy-btn" data-strategy="bear-put">熊市看跌价差 (Bear Put)</button>
                                 <button class="strategy-btn" data-strategy="iron-condor">铁鹰价差 (Iron Condor)</button>
@@ -130,34 +135,36 @@
                             </div>
                         </div>
                         <div class="strategy-chart card">
-                            <h3>到期盈亏�?/h3>
+                            <h3>到期盈亏图</h3>
                             <canvas id="payoffChart"></canvas>
                             <div class="strategy-desc" id="strategyDesc"></div>
                         </div>
                     </div>
                 </section>
+                
                 <section id="portfolio" class="page">
                     <h2>持仓管理</h2>
                     <div class="portfolio-container">
                         <div class="portfolio-summary card">
                             <h3>持仓概览</h3>
                             <div class="summary-stats">
-                                <div class="stat"><span class="label">总市�?/span><span class="value" id="totalValue">--</span></div>
+                                <div class="stat"><span class="label">总市值</span><span class="value" id="totalValue">--</span></div>
                                 <div class="stat"><span class="label">当日盈亏</span><span class="value" id="dailyPnL">--</span></div>
-                                <div class="stat"><span class="label">总盈�?/span><span class="value" id="totalPnL">--</span></div>
+                                <div class="stat"><span class="label">总盈亏</span><span class="value" id="totalPnL">--</span></div>
                             </div>
                         </div>
                         <div class="positions-table card">
                             <h3>持仓明细</h3>
                             <table>
                                 <thead>
-                                    <tr><th>代码</th><th>名称</th><th>方向</th><th>数量</th><th>成本�?/th><th>现价</th><th>盈亏</th></tr>
+                                    <tr><th>代码</th><th>名称</th><th>方向</th><th>数量</th><th>成本价</th><th>现价</th><th>盈亏</th></tr>
                                 </thead>
                                 <tbody id="positionsBody"></tbody>
                             </table>
                         </div>
                     </div>
                 </section>
+                
                 <section id="greeks" class="page">
                     <h2>Greeks 风险分析</h2>
                     <div class="greeks-container">
@@ -175,6 +182,8 @@
             </div>
         </main>
     </div>
-    <script src="market-data.js"></script><script src="app.js"></script>
+    
+    <script src="market-data.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
