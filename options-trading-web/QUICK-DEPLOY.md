@@ -13,8 +13,9 @@ git push origin main
 2. 点击 "New +" → "Web Service"
 3. 选择你的仓库
 4. 配置:
-   - Build: `pip install -r backend/requirements.txt`
-   - Start: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT`
+   - **Name**: `options-trading-api` (可自定义)
+   - **Build**: `pip install -r backend/requirements.txt`
+   - **Start**: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT`
 5. 点击 "Create Web Service"
 6. 等待部署完成，复制URL
 
@@ -23,11 +24,22 @@ git push origin main
 2. 点击 "Add New Project"
 3. 选择你的仓库
 4. 配置:
-   - Framework: Vue.js
-   - Root: frontend
-   - Build: npm run build
-5. 环境变量: `VITE_API_URL=https://你的render地址/api/v1`
+   - **Framework**: Vue.js
+   - **Root**: frontend
+   - **Build**: npm run build
+5. 环境变量: `VITE_API_URL=https://options-trading-api.onrender.com/api/v1`
 6. 点击 "Deploy"
+
+---
+
+## 项目名称建议
+
+由于 `options-trading` 已被占用，建议使用以下名称：
+
+| 项目 | 建议名称 |
+|------|----------|
+| 前端 | `option-strategy` / `option-tools` / `option-gui` |
+| 后端 | `option-strategy-api` / `option-tools-api` |
 
 ---
 
@@ -44,9 +56,9 @@ git push origin main
 
 ## 部署后地址
 
-- 前端: `https://你的项目.vercel.app`
-- 后端: `https://你的项目.onrender.com`
-- API文档: `https://你的项目.onrender.com/docs`
+- 前端: `https://你的项目名称.vercel.app`
+- 后端: `https://options-trading-api.onrender.com`
+- API文档: `https://options-trading-api.onrender.com/docs`
 
 ---
 
