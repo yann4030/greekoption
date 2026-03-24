@@ -44,16 +44,39 @@ function blackScholes(S, K, T, r, sigma, type = "call") {
     return { price, delta, gamma, theta, vega, rho };
 }
 
-// 页面导航
+// 页面导航 - 修复版
 function initNavigation() {
-    document.querySelectorAll(".nav-item").forEach(item => {
+    console.log("初始化导航...");
+    const navItems = document.querySelectorAll(".nav-item");
+    console.log("找到导航项:", navItems.length);
+    
+    navItems.forEach(item => {
         item.addEventListener("click", (e) => {
             e.preventDefault();
+            console.log("点击导航:", item.dataset.page);
+            
             const targetPage = item.dataset.page;
-            document.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
+            
+            // 更新导航状态
+            navItems.forEach(nav => nav.classList.remove("active"));
             item.classList.add("active");
-            document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
-            document.getElementById(targetPage).classList.add("active");
+            
+            // 切换页面
+            const pages = document.querySelectorAll(".page");
+            console.log("找到页面:", pages.length);
+            
+            pages.forEach(page => {
+                page.classList.remove("active");
+                console.log("隐藏页面:", page.id);
+            });
+            
+            const targetElement = document.getElementById(targetPage);
+            if (targetElement) {
+                targetElement.classList.add("active");
+                console.log("显示页面:", targetPage);
+            } else {
+                console.error("找不到页面:", targetPage);
+            }
         });
     });
 }
@@ -163,7 +186,7 @@ function initPortfolio() {
     const tbody = document.getElementById("positionsBody");
     if (!tbody) return;
     
-    let totalValue = 0, dailyPnL = 0, totalPnL = 0;
+    let totalValue = 0, totalPnL = 0;
     let html = "";
     
     positions.forEach(pos => {
@@ -234,6 +257,7 @@ function selectStrike(strike) {
 
 // 初始化
 document.addEventListener("DOMContentLoaded", () => {
+    console.log("页面加载完成，开始初始化...");
     initNavigation();
     initCalculator();
     initStrategyAnalysis();
@@ -246,4 +270,5 @@ document.addEventListener("DOMContentLoaded", () => {
     
     updateTime();
     setInterval(updateTime, 1000);
+    console.log("初始化完成");
 });
