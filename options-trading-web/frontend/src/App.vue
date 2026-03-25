@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-// 根组件
+// App root
 </script>
 
 <style>
